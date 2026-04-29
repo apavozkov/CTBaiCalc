@@ -1,6 +1,7 @@
 import json
 import os
 from fastapi import FastAPI, Depends, HTTPException, Request
+from pathlib import Path
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -15,8 +16,12 @@ from .schemas import StudyCreate, VersionCreate, ItemCreate, ScenarioCreate, Com
 from .services import calculate_budget, compare_scenarios
 
 app = FastAPI(title="CTBaiCalc")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 Base.metadata.create_all(bind=engine)
 
