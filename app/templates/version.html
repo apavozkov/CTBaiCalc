@@ -3,12 +3,14 @@
 <a href='/study/{{version.study_id}}'>← Назад</a><h2>{{version.name}}</h2>
 <div class='row'>
 <div class='col-md-6'><div class='card p-3 mb-3'><h5>Добавить статью</h5>
-<input id='item_name' class='form-control mb-2' placeholder='Наименование'>
-<select id='category' class='form-select mb-2'><option>Sites</option><option>Monitoring</option><option>Laboratory</option><option>Logistics</option></select>
-<select id='qtype' class='form-select mb-2'><option value='per-patient'>per-patient</option><option value='per-visit'>per-visit</option><option value='per-site'>per-site</option><option value='per-site-visit'>per-site-visit</option><option value='fixed'>fixed</option></select>
-<input id='cost' type='number' class='form-control mb-2' placeholder='Стоимость'>
-<input id='qty' type='number' class='form-control mb-2' value='1' placeholder='manual qty'>
-<button class='btn btn-primary' onclick='addItem()'>Добавить</button></div></div>
+<div class='row g-2 align-items-end'>
+<div class='col-md-6'><label for='item_name' class='form-label mb-1'>Наименование</label><input id='item_name' class='form-control form-control-sm'></div>
+<div class='col-md-6'><label for='category' class='form-label mb-1'>Категория</label><select id='category' class='form-select form-select-sm'>{% for cat in categories %}<option>{{cat}}</option>{% endfor %}</select></div>
+<div class='col-md-4'><label for='qtype' class='form-label mb-1'>Тип количества</label><select id='qtype' class='form-select form-select-sm'><option value='per-patient'>per-patient</option><option value='per-visit'>per-visit</option><option value='per-site'>per-site</option><option value='per-site-visit'>per-site-visit</option><option value='fixed'>fixed</option></select></div>
+<div class='col-md-4'><label for='cost' class='form-label mb-1'>Стоимость</label><input id='cost' type='number' class='form-control form-control-sm'></div>
+<div class='col-md-4'><label for='qty' class='form-label mb-1'>Количество</label><input id='qty' type='number' class='form-control form-control-sm' value='1'></div>
+<div class='col-12'><button class='btn btn-primary btn-sm' onclick='addItem()'>Добавить</button></div>
+</div></div></div>
 <div class='col-md-6'><div class='card p-3 mb-3'><h5>Сценарий</h5>
 <input id='slabel' class='form-control mb-2' placeholder='Scenario label'>
 <input id='patients' type='number' class='form-control mb-2' value='100'>
