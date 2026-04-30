@@ -5,7 +5,7 @@
 <div class='row g-2'><div class='col'><input id='name' class='form-control' placeholder='Название'></div><div class='col'><input id='indication' class='form-control' placeholder='Indication'></div><div class='col'><button class='btn btn-primary' onclick='createStudy()'>Создать</button></div></div></div>
 <div class='row'>
 {% for s in studies %}
-<div class='col-md-4'><div class='card mb-3'><div class='card-body'><h5>{{s.name}}</h5><p>{{s.indication}} / Phase {{s.phase}}</p><a class='btn btn-outline-primary' href='/study/{{s.id}}'>Открыть</a></div></div></div>
+<div class='col-md-4'><div class='card mb-3'><div class='card-body' role='link' tabindex='0' style='cursor:pointer' onclick="window.location.href='/study/{{s.id}}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='/study/{{s.id}}'}"><h5>{{s.name}}</h5><p>{{s.indication}}</p></div></div></div>
 {% endfor %}
 </div></div>
 <script>
