@@ -12,11 +12,12 @@
 <div class='col-12'><button class='btn btn-primary btn-sm' onclick='addItem()'>Добавить</button></div>
 </div></div></div>
 <div class='col-md-6'><div class='card p-3 mb-3'><h5>Сценарий</h5>
-<input id='slabel' class='form-control mb-2' placeholder='Scenario label'>
-<input id='patients' type='number' class='form-control mb-2' value='100'>
-<input id='sites' type='number' class='form-control mb-2' value='15'>
-<input id='visits' type='number' class='form-control mb-2' value='8'>
-<button class='btn btn-success' onclick='recalc()'>Пересчитать</button>
+<div class='row g-2 align-items-end'>
+<div class='col-md-6'><label for='slabel' class='form-label mb-1'>Название сценария</label><input id='slabel' class='form-control form-control-sm' value='Scenario'></div>
+<div class='col-md-2'><label for='patients' class='form-label mb-1'>Пациенты</label><input id='patients' type='number' class='form-control form-control-sm' value='100'></div>
+<div class='col-md-2'><label for='sites' class='form-label mb-1'>Площадки</label><input id='sites' type='number' class='form-control form-control-sm' value='15'></div>
+<div class='col-md-2'><label for='visits' class='form-label mb-1'>Визиты</label><input id='visits' type='number' class='form-control form-control-sm' value='8'></div>
+<div class='col-12'><button class='btn btn-success btn-sm' onclick='recalc()'>Пересчитать</button></div>
 </div></div></div>
 <div id='result'></div><canvas id='pie' height='100'></canvas>
 </div>
