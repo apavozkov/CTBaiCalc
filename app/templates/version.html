@@ -47,6 +47,8 @@
 <script>
 let lastScenarioId = null;
 let chart = null;
+let recalcController = null;
+let recalcInFlight = false;
 let aiState = { status: 'idle', message: 'Анализ ещё не запускался.', report: '' };
 const initialRows = [
   {% for item in version.items %}
@@ -145,18 +147,61 @@ async function addItem(){
 }
 
 async function recalc(){
+  if (recalcController){
+    recalcController.abort();
+  }
+  recalcController = new AbortController();
+  recalcInFlight = true;
+
+  const recalcBtn = document.querySelector("button[onclick='recalc()']");
+  if (recalcBtn){
+    recalcBtn.disabled = true;
+    recalcBtn.textContent = 'Пересчёт...';
+  }
+
   const body = {label:slabel.value||'Scenario',patients:Number(patients.value),sites:Number(sites.value),visits:Number(visits.value),monitoring_visits_per_site:4};
-  const r = await fetch('/api/versions/{{version.id}}/scenarios/recalculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d = await r.json();
-  lastScenarioId = d.scenario_id;
-  renderResult(d);
+
+  try {
+    const r = await fetch('/api/versions/{{version.id}}/scenarios/recalculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body), signal: recalcController.signal});
+    if (!r.ok){
+      throw new Error(`HTTP ${r.status}`);
+    }
+    const d = await r.json();
+    lastScenarioId = d.scenario_id;
+    renderResult(d);
+  } catch (e) {
+    if (e.name !== 'AbortError'){
+      alert(`Ошибка пересчёта: ${e.message}`);
+    }
+  } finally {
+    recalcInFlight = false;
+    if (recalcBtn){
+      recalcBtn.disabled = false;
+      recalcBtn.textContent = 'Пересчитать';
+    }
+  }
 }
 
 async function deleteItem(itemId){
-  const r = await fetch(`/api/items/${itemId}`, {method: 'DELETE'});
-  if (!r.ok) return;
-  currentRows = currentRows.filter(r => r.id !== itemId);
-  await recalc();
+  if (recalcInFlight){
+    return;
+  }
+
+  const deleteButtons = document.querySelectorAll('button.btn-outline-danger');
+  deleteButtons.forEach(btn => btn.disabled = true);
+
+  try {
+    const r = await fetch(`/api/items/${itemId}`, {method: 'DELETE'});
+    if (!r.ok){
+      throw new Error(`HTTP ${r.status}`);
+    }
+    currentRows = currentRows.filter(r => r.id !== itemId);
+    await recalc();
+  } catch (e) {
+    alert(`Ошибка удаления статьи: ${e.message}`);
+  } finally {
+    deleteButtons.forEach(btn => btn.disabled = false);
+  }
 }
 
 async function ai(){
