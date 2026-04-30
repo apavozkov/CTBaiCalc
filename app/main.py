@@ -12,7 +12,7 @@ from io import BytesIO
 
 from .database import Base, engine, get_db
 from .models import Study, BudgetVersion, BudgetItem, ScenarioRun, AIReport
-from .schemas import StudyCreate, StudyUpdate, VersionCreate, VersionUpdate, ItemCreate, ScenarioCreate, ComparePayload
+from .schemas import StudyCreate, StudyUpdate, VersionCreate, VersionUpdate, ItemCreate, ScenarioCreate, ComparePayload, VersionCompareCreate
 from .services import calculate_budget, compare_scenarios
 from datetime import datetime
 
@@ -89,6 +89,62 @@ def study_page(study_id: int, request: Request, db: Session = Depends(get_db)):
         raise HTTPException(404)
     return templates.TemplateResponse("study.html", {"request": request, "study": study})
 
+
+
+
+@app.get("/study/{study_id}/compare", response_class=HTMLResponse)
+def compare_versions_page(study_id: int, request: Request, db: Session = Depends(get_db)):
+    study = db.get(Study, study_id)
+    if not study:
+        raise HTTPException(404)
+    versions = db.query(BudgetVersion).filter(BudgetVersion.study_id == study_id).order_by(BudgetVersion.created_at.desc()).all()
+    return templates.TemplateResponse("compare_versions.html", {"request": request, "study": study, "versions": versions})
+
+
+@app.post("/api/studies/{study_id}/compare-versions")
+def compare_versions(study_id: int, payload: VersionCompareCreate, db: Session = Depends(get_db)):
+    version_a = db.get(BudgetVersion, payload.version_a_id)
+    version_b = db.get(BudgetVersion, payload.version_b_id)
+    if not version_a or not version_b:
+        raise HTTPException(404, detail="Version not found")
+    if version_a.study_id != study_id or version_b.study_id != study_id:
+        raise HTTPException(400, detail="Versions must belong to current study")
+
+    items_a = db.query(BudgetItem).filter(BudgetItem.budget_version_id == version_a.id).all()
+    items_b = db.query(BudgetItem).filter(BudgetItem.budget_version_id == version_b.id).all()
+
+    calc_a = calculate_budget(items_a, payload.patients, payload.sites, payload.visits, payload.monitoring_visits_per_site)
+    calc_b = calculate_budget(items_b, payload.patients, payload.sites, payload.visits, payload.monitoring_visits_per_site)
+
+    rows_a = {(r["category"], r["item_name"]): r for r in calc_a["rows"]}
+    rows_b = {(r["category"], r["item_name"]): r for r in calc_b["rows"]}
+    keys = sorted(set(rows_a.keys()) | set(rows_b.keys()))
+
+    comparison_rows = []
+    for key in keys:
+        ra = rows_a.get(key)
+        rb = rows_b.get(key)
+        if ra and rb:
+            status = "same" if ra["line_total"] == rb["line_total"] and ra["qty"] == rb["qty"] else "diff"
+        else:
+            status = "missing"
+        comparison_rows.append({
+            "category": key[0],
+            "item_name": key[1],
+            "a_qty": ra["qty"] if ra else None,
+            "a_line_total": ra["line_total"] if ra else None,
+            "b_qty": rb["qty"] if rb else None,
+            "b_line_total": rb["line_total"] if rb else None,
+            "status": status,
+        })
+
+    return {
+        "version_a_name": version_a.name,
+        "version_b_name": version_b.name,
+        "grand_total_a": calc_a["grand_total"],
+        "grand_total_b": calc_b["grand_total"],
+        "comparison_rows": comparison_rows,
+    }
 
 @app.post("/api/studies/{study_id}/versions")
 def create_version(study_id: int, payload: VersionCreate, db: Session = Depends(get_db)):
