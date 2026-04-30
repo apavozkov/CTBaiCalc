@@ -12,8 +12,9 @@ from io import BytesIO
 
 from .database import Base, engine, get_db
 from .models import Study, BudgetVersion, BudgetItem, ScenarioRun, AIReport
-from .schemas import StudyCreate, StudyUpdate, VersionCreate, ItemCreate, ScenarioCreate, ComparePayload
+from .schemas import StudyCreate, StudyUpdate, VersionCreate, VersionUpdate, ItemCreate, ScenarioCreate, ComparePayload
 from .services import calculate_budget, compare_scenarios
+from datetime import datetime
 
 app = FastAPI(title="CTBaiCalc")
 BASE_DIR = Path(__file__).resolve().parent
@@ -77,6 +78,56 @@ def create_version(study_id: int, payload: VersionCreate, db: Session = Depends(
     db.commit()
     db.refresh(version)
     return {"id": version.id}
+
+
+@app.put("/api/versions/{version_id}")
+def rename_version(version_id: int, payload: VersionUpdate, db: Session = Depends(get_db)):
+    version = db.get(BudgetVersion, version_id)
+    if not version:
+        raise HTTPException(404)
+    version.name = payload.name
+    db.commit()
+    return {"ok": True}
+
+
+@app.delete("/api/versions/{version_id}")
+def delete_version(version_id: int, db: Session = Depends(get_db)):
+    version = db.get(BudgetVersion, version_id)
+    if not version:
+        raise HTTPException(404)
+    db.delete(version)
+    db.commit()
+    return {"ok": True}
+
+
+@app.post("/api/versions/{version_id}/copy")
+def copy_version(version_id: int, db: Session = Depends(get_db)):
+    version = db.get(BudgetVersion, version_id)
+    if not version:
+        raise HTTPException(404)
+
+    copied_name = f"{version.name} Copy {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}"
+    version_copy = BudgetVersion(study_id=version.study_id, name=copied_name, currency=version.currency)
+    db.add(version_copy)
+    db.flush()
+
+    for item in version.items:
+        item_copy = BudgetItem(
+            budget_version_id=version_copy.id,
+            category=item.category,
+            subcategory=item.subcategory,
+            item_name=item.item_name,
+            unit=item.unit,
+            unit_cost=item.unit_cost,
+            qty_formula_type=item.qty_formula_type,
+            manual_qty=item.manual_qty,
+            notes=item.notes,
+        )
+        db.add(item_copy)
+
+    db.commit()
+    db.refresh(version_copy)
+    return {"id": version_copy.id}
 
 
 @app.get("/version/{version_id}", response_class=HTMLResponse)

@@ -22,7 +22,16 @@
 </div>
 <div class='card p-3 mb-3'><h5>Новая версия бюджета</h5><div class='row g-2'><div class='col'><input id='vname' class='form-control' placeholder='Наименование'></div><div class='col'><button onclick='createVersion()' class='btn btn-primary'>Создать</button></div></div></div>
 <ul class='list-group'>
-{% for v in study.versions %}<li class='list-group-item d-flex justify-content-between budget-version-item' role='link' tabindex='0' style='cursor:pointer' onclick="window.location.href='/version/{{v.id}}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='/version/{{v.id}}'}"><span>{{v.name}}</span></li>{% endfor %}
+{% for v in study.versions %}
+<li class='list-group-item d-flex justify-content-between align-items-center budget-version-item' role='link' tabindex='0' style='cursor:pointer' onclick="window.location.href='/version/{{v.id}}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='/version/{{v.id}}'}">
+  <span>{{v.name}}</span>
+  <div class='d-flex gap-2 ms-auto'>
+    <button class='btn btn-sm btn-outline-secondary' onclick='event.stopPropagation();renameVersion({{v.id}},"{{v.name|replace(\"\\\"\", \"\\\\\\\"\")}}")'>Редактировать</button>
+    <button class='btn btn-sm btn-outline-primary' onclick='event.stopPropagation();copyVersion({{v.id}})'>Копировать</button>
+    <button class='btn btn-sm btn-outline-danger' onclick='event.stopPropagation();deleteVersion({{v.id}})'>Удалить</button>
+  </div>
+</li>
+{% endfor %}
 </ul></div>
 <script>
 async function createVersion(){const r=await fetch('/api/studies/{{study.id}}/versions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:document.getElementById('vname').value,currency:'USD'})});if(r.ok) location.reload();}
@@ -36,5 +45,20 @@ async function deleteStudy(){
   if(!confirm('Удалить исследование и все версии бюджета?')) return;
   const r=await fetch('/api/studies/{{study.id}}',{method:'DELETE'});
   if(r.ok) window.location.href='/';
+}
+async function deleteVersion(versionId){
+  if(!confirm('Удалить версию бюджета?')) return;
+  const r=await fetch(`/api/versions/${versionId}`,{method:'DELETE'});
+  if(r.ok) location.reload();
+}
+async function copyVersion(versionId){
+  const r=await fetch(`/api/versions/${versionId}/copy`,{method:'POST'});
+  if(r.ok) location.reload();
+}
+async function renameVersion(versionId, currentName){
+  const name=prompt('Новое имя версии бюджета:', currentName);
+  if(name===null||!name.trim()) return;
+  const r=await fetch(`/api/versions/${versionId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name.trim()})});
+  if(r.ok) location.reload();
 }
 </script></body></html>
