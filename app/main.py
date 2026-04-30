@@ -197,7 +197,7 @@ async def ai_structure(scenario_id: int, db: Session = Depends(get_db)):
     calc = calculate_budget(items, scenario.patients, scenario.sites, scenario.visits, scenario.monitoring_visits_per_site)
 
     prompt = {
-        "task": "Analyze structure, top cost drivers, optimization ideas without harming data quality.",
+        "task": "Проанализируй структуру бюджета, основные драйверы затрат и идеи оптимизации без ущерба качеству данных.",
         "scenario": {"label": scenario.label, "patients": scenario.patients, "sites": scenario.sites, "visits": scenario.visits},
         "categories": calc["categories"],
         "top_rows": calc["rows"][:10],
@@ -211,7 +211,7 @@ async def ai_structure(scenario_id: int, db: Session = Depends(get_db)):
         payload = {
             "model": os.getenv("OPENROUTER_MODEL", "openrouter/auto"),
             "messages": [
-                {"role": "system", "content": "You are a clinical trial finance analyst. Use only given JSON."},
+                {"role": "system", "content": "Ты финансовый аналитик клинических исследований. Отвечай только на русском языке, строго в Markdown. Используй только данные из переданного JSON."},
                 {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)}
             ]
         }
