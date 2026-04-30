@@ -88,7 +88,7 @@ async function compareBudgets(){
     <table class='table table-sm mb-0'>
       <thead><tr><th>Показатель</th><th>${d.version_a_name}</th><th>${d.version_b_name}</th></tr></thead>
       <tbody>
-        <tr class='${totalClass}'><td>Grand total</td><td>${fmt(d.grand_total_a)}</td><td>${fmt(d.grand_total_b)}</td></tr>
+        <tr><td>Grand total</td><td class='${totalClass}'>${fmt(d.grand_total_a)}</td><td class='${totalClass}'>${fmt(d.grand_total_b)}</td></tr>
       </tbody>
     </table>
   </div>`;
@@ -97,10 +97,23 @@ async function compareBudgets(){
   html += `<table class='table table-sm align-middle'><thead><tr><th>Категория</th><th>Статья</th><th>${d.version_a_name}</th><th>${d.version_b_name}</th></tr></thead><tbody>`;
 
   d.comparison_rows.forEach(row => {
-    const cls = row.status === 'same' ? 'cmp-same' : (row.status === 'diff' ? 'cmp-diff' : 'cmp-missing');
-    const aValue = row.a_line_total === null ? '' : `${fmt(row.a_line_total)} (qty: ${row.a_qty})`;
-    const bValue = row.b_line_total === null ? '' : `${fmt(row.b_line_total)} (qty: ${row.b_qty})`;
-    html += `<tr><td>${row.category}</td><td>${row.item_name}</td><td class='${cls}'>${aValue}</td><td class='${cls}'>${bValue}</td></tr>`;
+    let classA = '';
+    let classB = '';
+
+    if (row.status === 'same') {
+      classA = 'cmp-same';
+      classB = 'cmp-same';
+    } else if (row.status === 'diff') {
+      classA = 'cmp-diff';
+      classB = 'cmp-diff';
+    } else {
+      classA = row.a_line_total === null ? 'cmp-missing' : '';
+      classB = row.b_line_total === null ? 'cmp-missing' : '';
+    }
+
+    const aValue = row.a_line_total === null ? '' : fmt(row.a_line_total);
+    const bValue = row.b_line_total === null ? '' : fmt(row.b_line_total);
+    html += `<tr><td>${row.category}</td><td>${row.item_name}</td><td class='${classA}'>${aValue}</td><td class='${classB}'>${bValue}</td></tr>`;
   });
 
   if (!d.comparison_rows.length){
