@@ -167,6 +167,16 @@ def create_item(version_id: int, payload: ItemCreate, db: Session = Depends(get_
     return {"id": item.id}
 
 
+
+@app.delete("/api/items/{item_id}")
+def delete_item(item_id: int, db: Session = Depends(get_db)):
+    item = db.get(BudgetItem, item_id)
+    if not item:
+        raise HTTPException(404)
+    db.delete(item)
+    db.commit()
+    return {"ok": True}
+
 @app.post("/api/versions/{version_id}/scenarios/recalculate")
 def recalc(version_id: int, payload: ScenarioCreate, db: Session = Depends(get_db)):
     items = db.query(BudgetItem).filter(BudgetItem.budget_version_id == version_id).all()

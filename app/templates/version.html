@@ -1,39 +1,137 @@
-<!doctype html><html><head><meta charset='utf-8'><title>{{version.name}}</title><link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'><script src='https://cdn.jsdelivr.net/npm/chart.js'></script></head>
-<body><div class='container py-4'>
-<a href='/study/{{version.study_id}}'>← Назад</a><h2>{{version.name}}</h2>
-<div class='row'>
-<div class='col-md-6'><div class='card p-3 mb-3'><h5>Добавить статью</h5>
-<div class='row g-2 align-items-end'>
-<div class='col-md-6'><label for='item_name' class='form-label mb-1'>Наименование</label><input id='item_name' class='form-control form-control-sm'></div>
-<div class='col-md-6'><label for='category' class='form-label mb-1'>Категория</label><select id='category' class='form-select form-select-sm'>{% for cat in categories %}<option>{{cat}}</option>{% endfor %}</select></div>
-<div class='col-md-4'><label for='qtype' class='form-label mb-1'>Тип</label><select id='qtype' class='form-select form-select-sm'><option value='per-patient'>per-patient</option><option value='per-visit'>per-visit</option><option value='per-site'>per-site</option><option value='per-site-visit'>per-site-visit</option><option value='fixed'>fixed</option></select></div>
-<div class='col-md-4'><label for='qty' class='form-label mb-1'>Количество</label><input id='qty' type='number' class='form-control form-control-sm' value='1'></div>
-<div class='col-md-4'><label for='cost' class='form-label mb-1'>Стоимость</label><input id='cost' type='number' class='form-control form-control-sm'></div>
-<div class='col-12'><button class='btn btn-primary btn-sm' onclick='addItem()'>Добавить</button></div>
-</div></div></div>
-<div class='col-md-6'><div class='card p-3 mb-3'><h5>Сценарий</h5>
-<div class='row g-2 align-items-end'>
-<div class='col-12 col-md-6'><label for='slabel' class='form-label mb-1'>Название сценария</label><input id='slabel' class='form-control form-control-sm' value='Scenario'></div>
-<div class='col-12 col-sm-4 col-md-2'><label for='patients' class='form-label mb-1'>Пациенты</label><input id='patients' type='number' class='form-control form-control-sm' value='100'></div>
-<div class='col-12 col-sm-4 col-md-2'><label for='sites' class='form-label mb-1'>Площадки</label><input id='sites' type='number' class='form-control form-control-sm' value='15'></div>
-<div class='col-12 col-sm-4 col-md-2'><label for='visits' class='form-label mb-1'>Визиты</label><input id='visits' type='number' class='form-control form-control-sm' value='8'></div>
-<div class='col-12'><button class='btn btn-success btn-sm' onclick='recalc()'>Пересчитать</button></div>
-</div></div></div>
-<div id='result'></div><canvas id='pie' height='100'></canvas>
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>{{version.name}}</title>
+  <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'>
+  <script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+</head>
+<body>
+<div class='container py-4'>
+  <a href='/study/{{version.study_id}}'>← Назад</a>
+  <h2>{{version.name}}</h2>
+
+  <div class='row'>
+    <div class='col-md-6'>
+      <div class='card p-3 mb-3'>
+        <h5>Добавить статью</h5>
+        <div class='row g-2 align-items-end'>
+          <div class='col-md-6'><label for='item_name' class='form-label mb-1'>Наименование</label><input id='item_name' class='form-control form-control-sm'></div>
+          <div class='col-md-6'><label for='category' class='form-label mb-1'>Категория</label><select id='category' class='form-select form-select-sm'>{% for cat in categories %}<option>{{cat}}</option>{% endfor %}</select></div>
+          <div class='col-md-4'><label for='qtype' class='form-label mb-1'>Тип</label><select id='qtype' class='form-select form-select-sm'><option value='per-patient'>per-patient</option><option value='per-visit'>per-visit</option><option value='per-site'>per-site</option><option value='per-site-visit'>per-site-visit</option><option value='fixed'>fixed</option></select></div>
+          <div class='col-md-4'><label for='qty' class='form-label mb-1'>Количество</label><input id='qty' type='number' class='form-control form-control-sm' value='1'></div>
+          <div class='col-md-4'><label for='cost' class='form-label mb-1'>Стоимость</label><input id='cost' type='number' class='form-control form-control-sm'></div>
+          <div class='col-12'><button class='btn btn-primary btn-sm' onclick='addItem()'>Добавить</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class='col-md-6'>
+      <div class='card p-3 mb-3'>
+        <h5>Сценарий</h5>
+        <div class='row g-2 align-items-end'>
+          <div class='col-12 col-md-6'><label for='slabel' class='form-label mb-1'>Название сценария</label><input id='slabel' class='form-control form-control-sm' value='Scenario'></div>
+          <div class='col-12 col-sm-4 col-md-2'><label for='patients' class='form-label mb-1'>Пациенты</label><input id='patients' type='number' class='form-control form-control-sm' value='100'></div>
+          <div class='col-12 col-sm-4 col-md-2'><label for='sites' class='form-label mb-1'>Площадки</label><input id='sites' type='number' class='form-control form-control-sm' value='15'></div>
+          <div class='col-12 col-sm-4 col-md-2'><label for='visits' class='form-label mb-1'>Визиты</label><input id='visits' type='number' class='form-control form-control-sm' value='8'></div>
+          <div class='col-12'><button class='btn btn-success btn-sm' onclick='recalc()'>Пересчитать</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id='result'></div>
 </div>
+
 <script>
-let lastScenarioId=null;let chart=null;
-async function addItem(){
-const body={item_name:item_name.value,category:category.value,unit_cost:Number(cost.value),qty_formula_type:qtype.value,manual_qty:Number(qty.value),subcategory:'General',unit:'service',notes:''};
-const r=await fetch('/api/versions/{{version.id}}/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(r.ok) alert('Добавлено');}
-async function recalc(){
-const body={label:slabel.value||'Scenario',patients:Number(patients.value),sites:Number(sites.value),visits:Number(visits.value),monitoring_visits_per_site:4};
-const r=await fetch('/api/versions/{{version.id}}/scenarios/recalculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const d=await r.json();lastScenarioId=d.scenario_id;
-let html=`<div class='alert alert-info'>Grand total: <b>${d.grand_total}</b> <button class='btn btn-sm btn-outline-dark ms-2' onclick='ai()'>AI анализ</button> <a class='btn btn-sm btn-outline-primary ms-2' href='/api/scenarios/${lastScenarioId}/export.xlsx'>XLSX</a></div>`;
-html+='<table class="table table-sm"><tr><th>Категория</th><th>Total</th><th>%</th></tr>';
-d.categories.forEach(c=>html+=`<tr><td>${c.category}</td><td>${c.total}</td><td>${c.share_pct}</td></tr>`);html+='</table><div id="ai"></div>';result.innerHTML=html;
-const ctx=document.getElementById('pie');if(chart){chart.destroy();}
-chart=new Chart(ctx,{type:'pie',data:{labels:d.categories.map(x=>x.category),datasets:[{data:d.categories.map(x=>x.total)}]}});
+let lastScenarioId = null;
+let chart = null;
+const initialRows = [
+  {% for item in version.items %}
+  {
+    id: {{item.id}},
+    category: {{item.category|tojson}},
+    item_name: {{item.item_name|tojson}},
+    qty_formula_type: {{item.qty_formula_type|tojson}},
+    manual_qty: {{item.manual_qty}},
+    unit_cost: {{item.unit_cost}}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+let currentRows = initialRows;
+
+function fmt(n){ return Number(n || 0).toLocaleString('ru-RU', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+function renderResult(data = null){
+  const categories = data?.categories || [];
+  const grandTotal = data?.grand_total || 0;
+  if (data?.rows){
+    currentRows = data.rows;
+  }
+
+  let html = '';
+  html += `<div class='row g-3 align-items-start mb-3'>`;
+  html += `<div class='col-lg-8'><div class='card p-2'><div class='small text-muted mb-1'>Распределение по категориям</div>`;
+  html += `<table class='table table-sm mb-1'><thead><tr><th>Категория</th><th>Сумма</th><th>%</th></tr></thead><tbody>`;
+  categories.forEach(c => html += `<tr><td>${c.category}</td><td>${fmt(c.total)}</td><td>${c.share_pct}</td></tr>`);
+  if (!categories.length) html += `<tr><td colspan='3' class='text-muted'>Сначала выполните пересчёт сценария.</td></tr>`;
+  html += `</tbody></table></div></div>`;
+  html += `<div class='col-lg-4'><div class='card p-2'><canvas id='pie' height='130'></canvas></div></div></div>`;
+
+  html += `<div class='alert alert-info py-2'>Grand total: <b>${fmt(grandTotal)}</b>`;
+  if (lastScenarioId){
+    html += ` <button class='btn btn-sm btn-outline-dark ms-2' onclick='ai()'>AI анализ</button>`;
+    html += ` <a class='btn btn-sm btn-outline-primary ms-2' href='/api/scenarios/${lastScenarioId}/export.xlsx'>XLSX</a>`;
+  }
+  html += `</div><div id='ai' class='mb-3'></div>`;
+
+  html += `<div class='card p-2'><div class='small text-muted mb-1'>Статьи расходов</div><div class='table-responsive'>`;
+  html += `<table class='table table-sm align-middle'><thead><tr><th>Категория</th><th>Статья</th><th>Тип</th><th>Количество</th><th>Цена</th><th>Итого</th><th></th></tr></thead><tbody>`;
+  currentRows.forEach(r => {
+    const qty = r.qty ?? r.manual_qty ?? 0;
+    const lineTotal = r.line_total ?? (Number(r.unit_cost || 0) * Number(qty || 0));
+    const type = r.qty_formula_type || '-';
+    html += `<tr><td>${r.category}</td><td>${r.item_name}</td><td>${type}</td><td>${qty}</td><td>${fmt(r.unit_cost)}</td><td>${fmt(lineTotal)}</td><td class='text-end'><button class='btn btn-sm btn-outline-danger' onclick='deleteItem(${r.id})'>Удалить</button></td></tr>`;
+  });
+  if (!currentRows.length) html += `<tr><td colspan='7' class='text-muted'>В этом бюджете пока нет статей.</td></tr>`;
+  html += `</tbody></table></div></div>`;
+
+  result.innerHTML = html;
+  const ctx = document.getElementById('pie');
+  if (chart){ chart.destroy(); }
+  chart = new Chart(ctx,{type:'pie',data:{labels:categories.map(x=>x.category),datasets:[{data:categories.map(x=>x.total)}]}});
 }
-async function ai(){const r=await fetch(`/api/ai/structure-analysis/${lastScenarioId}`,{method:'POST'});const d=await r.json();document.getElementById('ai').innerHTML=`<div class='card card-body'><pre style='white-space:pre-wrap'>${d.report}</pre></div>`;}
-</script></body></html>
+
+async function addItem(){
+  const body = {item_name:item_name.value,category:category.value,unit_cost:Number(cost.value),qty_formula_type:qtype.value,manual_qty:Number(qty.value),subcategory:'General',unit:'service',notes:''};
+  const r = await fetch('/api/versions/{{version.id}}/items',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(r.ok){
+    await recalc();
+  }
+}
+
+async function recalc(){
+  const body = {label:slabel.value||'Scenario',patients:Number(patients.value),sites:Number(sites.value),visits:Number(visits.value),monitoring_visits_per_site:4};
+  const r = await fetch('/api/versions/{{version.id}}/scenarios/recalculate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d = await r.json();
+  lastScenarioId = d.scenario_id;
+  renderResult(d);
+}
+
+async function deleteItem(itemId){
+  const r = await fetch(`/api/items/${itemId}`, {method: 'DELETE'});
+  if (!r.ok) return;
+  currentRows = currentRows.filter(r => r.id !== itemId);
+  await recalc();
+}
+
+async function ai(){
+  const r=await fetch(`/api/ai/structure-analysis/${lastScenarioId}`,{method:'POST'});
+  const d=await r.json();
+  document.getElementById('ai').innerHTML=`<div class='card card-body'><pre style='white-space:pre-wrap'>${d.report}</pre></div>`;
+}
+
+renderResult();
+</script>
+</body>
+</html>
