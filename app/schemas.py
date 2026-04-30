@@ -16,6 +16,9 @@ class VersionCreate(BaseModel):
     name: str
     currency: str = "USD"
 
+class VersionUpdate(BaseModel):
+    name: str
+
 
 class ItemCreate(BaseModel):
     category: str
