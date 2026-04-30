@@ -26,7 +26,7 @@
 <li class='list-group-item d-flex justify-content-between align-items-center budget-version-item' role='link' tabindex='0' style='cursor:pointer' onclick="window.location.href='/version/{{v.id}}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='/version/{{v.id}}'}">
   <span>{{v.name}}</span>
   <div class='d-flex gap-2 ms-auto'>
-    <button class='btn btn-sm btn-outline-secondary' onclick='event.stopPropagation();renameVersion({{v.id}},"{{v.name|replace(\"\\\"\", \"\\\\\\\"\")}}")'>Редактировать</button>
+    <button class='btn btn-sm btn-outline-secondary' onclick='event.stopPropagation();renameVersion({{v.id}}, {{v.name|tojson}})'>Редактировать</button>
     <button class='btn btn-sm btn-outline-primary' onclick='event.stopPropagation();copyVersion({{v.id}})'>Копировать</button>
     <button class='btn btn-sm btn-outline-danger' onclick='event.stopPropagation();deleteVersion({{v.id}})'>Удалить</button>
   </div>
