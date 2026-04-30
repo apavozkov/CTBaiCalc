@@ -18,6 +18,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./categories.json:/app/categories.json:ro
     environment:
       DATABASE_URL: postgresql+psycopg2://ctb:ctb@db:5432/ctb
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
