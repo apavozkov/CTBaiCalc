@@ -42,3 +42,12 @@ class ScenarioCreate(BaseModel):
 class ComparePayload(BaseModel):
     scenario_a_id: int
     scenario_b_id: int
+
+
+class VersionCompareCreate(BaseModel):
+    version_a_id: int
+    version_b_id: int
+    patients: int
+    sites: int
+    visits: int
+    monitoring_visits_per_site: int = 4
