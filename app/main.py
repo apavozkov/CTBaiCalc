@@ -18,13 +18,32 @@ from datetime import datetime
 
 app = FastAPI(title="CTBaiCalc")
 BASE_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = BASE_DIR.parent
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
+DEFAULT_CATEGORIES = ["Sites", "Monitoring", "Laboratory", "Logistics"]
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 Base.metadata.create_all(bind=engine)
+
+
+def load_budget_categories() -> list[str]:
+    categories_path = PROJECT_ROOT / "categories.json"
+    if not categories_path.exists():
+        return DEFAULT_CATEGORIES
+    try:
+        with categories_path.open("r", encoding="utf-8") as f:
+            raw = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return DEFAULT_CATEGORIES
+
+    categories = raw.get("category", [])
+    if not isinstance(categories, list):
+        return DEFAULT_CATEGORIES
+    clean_categories = [str(item).strip() for item in categories if str(item).strip()]
+    return clean_categories or DEFAULT_CATEGORIES
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -135,7 +154,8 @@ def version_page(version_id: int, request: Request, db: Session = Depends(get_db
     version = db.get(BudgetVersion, version_id)
     if not version:
         raise HTTPException(404)
-    return templates.TemplateResponse("version.html", {"request": request, "version": version})
+    categories = load_budget_categories()
+    return templates.TemplateResponse("version.html", {"request": request, "version": version, "categories": categories})
 
 
 @app.post("/api/versions/{version_id}/items")
