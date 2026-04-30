@@ -5,6 +5,7 @@
   <title>{{version.name}}</title>
   <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'>
   <script src='https://cdn.jsdelivr.net/npm/chart.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/marked/marked.min.js'></script>
 </head>
 <body>
 <div class='container py-4'>
@@ -46,6 +47,7 @@
 <script>
 let lastScenarioId = null;
 let chart = null;
+let aiState = { status: 'idle', message: 'Анализ ещё не запускался.', report: '' };
 const initialRows = [
   {% for item in version.items %}
   {
@@ -97,9 +99,41 @@ function renderResult(data = null){
   html += `</tbody></table></div></div>`;
 
   result.innerHTML = html;
+  renderAiBlock();
   const ctx = document.getElementById('pie');
   if (chart){ chart.destroy(); }
   chart = new Chart(ctx,{type:'pie',data:{labels:categories.map(x=>x.category),datasets:[{data:categories.map(x=>x.total)}]}});
+}
+
+function renderAiBlock(){
+  const aiContainer = document.getElementById('ai');
+  if (!aiContainer) return;
+
+  const statusClass = aiState.status === 'error'
+    ? 'alert-danger'
+    : (aiState.status === 'working' ? 'alert-warning' : 'alert-secondary');
+  const safeStatusMessage = aiState.message || '—';
+
+  let reportHtml = `<div class='text-muted'>Результат анализа появится здесь после завершения запроса.</div>`;
+  let copyButtonHtml = '';
+  if (aiState.report){
+    reportHtml = marked.parse(aiState.report);
+    copyButtonHtml = `<button class='btn btn-sm btn-outline-dark' onclick='copyAiReport()'>Скопировать как текст</button>`;
+  }
+
+  aiContainer.innerHTML = `
+    <div class='card'>
+      <div class='card-body'>
+        <div class='d-flex justify-content-between align-items-center mb-2'>
+          <h6 class='mb-0'>AI анализ</h6>
+          ${copyButtonHtml}
+        </div>
+        <div class='small text-muted mb-2'>Статус AI анализа</div>
+        <div class='alert ${statusClass} py-2 mb-3'>${safeStatusMessage}</div>
+        <div class='markdown-body'>${reportHtml}</div>
+      </div>
+    </div>
+  `;
 }
 
 async function addItem(){
@@ -126,9 +160,34 @@ async function deleteItem(itemId){
 }
 
 async function ai(){
-  const r=await fetch(`/api/ai/structure-analysis/${lastScenarioId}`,{method:'POST'});
-  const d=await r.json();
-  document.getElementById('ai').innerHTML=`<div class='card card-body'><pre style='white-space:pre-wrap'>${d.report}</pre></div>`;
+  aiState = { status: 'working', message: 'Работаем над AI анализом…', report: '' };
+  renderAiBlock();
+  try {
+    const r = await fetch(`/api/ai/structure-analysis/${lastScenarioId}`, {method:'POST'});
+    if (!r.ok){
+      aiState = { status: 'error', message: `Ошибка AI анализа: HTTP ${r.status}`, report: '' };
+      renderAiBlock();
+      return;
+    }
+    const d = await r.json();
+    aiState = { status: 'done', message: 'AI анализ успешно завершён.', report: d.report || '' };
+    renderAiBlock();
+  } catch (e){
+    aiState = { status: 'error', message: `Ошибка AI анализа: ${e.message}`, report: '' };
+    renderAiBlock();
+  }
+}
+
+async function copyAiReport(){
+  if (!aiState.report) return;
+  try {
+    await navigator.clipboard.writeText(aiState.report);
+    aiState = {...aiState, message: 'AI анализ успешно завершён. Текст скопирован в буфер обмена.'};
+    renderAiBlock();
+  } catch (e){
+    aiState = {...aiState, status: 'error', message: `Не удалось скопировать текст: ${e.message}`};
+    renderAiBlock();
+  }
 }
 
 renderResult();
