@@ -7,6 +7,10 @@ class StudyCreate(BaseModel):
     phase: str = "II"
     status: str = "Draft"
 
+class StudyUpdate(BaseModel):
+    name: str
+    indication: str
+
 
 class VersionCreate(BaseModel):
     name: str
