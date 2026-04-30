@@ -17,7 +17,7 @@
 </div>
 <div class='card p-3 mb-3'><h5>Новая версия бюджета</h5><div class='row g-2'><div class='col'><input id='vname' class='form-control' placeholder='Baseline / Amend-1'></div><div class='col'><button onclick='createVersion()' class='btn btn-primary'>Создать</button></div></div></div>
 <ul class='list-group'>
-{% for v in study.versions %}<li class='list-group-item d-flex justify-content-between'><span>{{v.name}} ({{v.currency}})</span><a class='btn btn-sm btn-outline-primary' href='/version/{{v.id}}'>Открыть</a></li>{% endfor %}
+{% for v in study.versions %}<li class='list-group-item d-flex justify-content-between' role='link' tabindex='0' style='cursor:pointer' onclick="window.location.href='/version/{{v.id}}'" onkeydown="if(event.key==='Enter'||event.key===' '){window.location.href='/version/{{v.id}}'}"><span>{{v.name}}</span></li>{% endfor %}
 </ul></div>
 <script>
 async function createVersion(){const r=await fetch('/api/studies/{{study.id}}/versions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:document.getElementById('vname').value,currency:'USD'})});if(r.ok) location.reload();}
