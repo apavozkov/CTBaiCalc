@@ -12,7 +12,7 @@ from io import BytesIO
 
 from .database import Base, engine, get_db
 from .models import Study, BudgetVersion, BudgetItem, ScenarioRun, AIReport
-from .schemas import StudyCreate, VersionCreate, ItemCreate, ScenarioCreate, ComparePayload
+from .schemas import StudyCreate, StudyUpdate, VersionCreate, ItemCreate, ScenarioCreate, ComparePayload
 from .services import calculate_budget, compare_scenarios
 
 app = FastAPI(title="CTBaiCalc")
@@ -39,6 +39,27 @@ def create_study(payload: StudyCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(study)
     return {"id": study.id}
+
+
+@app.put("/api/studies/{study_id}")
+def update_study(study_id: int, payload: StudyUpdate, db: Session = Depends(get_db)):
+    study = db.get(Study, study_id)
+    if not study:
+        raise HTTPException(404)
+    study.name = payload.name
+    study.indication = payload.indication
+    db.commit()
+    return {"ok": True}
+
+
+@app.delete("/api/studies/{study_id}")
+def delete_study(study_id: int, db: Session = Depends(get_db)):
+    study = db.get(Study, study_id)
+    if not study:
+        raise HTTPException(404)
+    db.delete(study)
+    db.commit()
+    return {"ok": True}
 
 
 @app.get("/study/{study_id}", response_class=HTMLResponse)
